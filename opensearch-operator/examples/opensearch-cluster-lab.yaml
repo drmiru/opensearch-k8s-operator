@@ -1,0 +1,85 @@
+apiVersion: opensearch.opster.io/v1
+kind: OpenSearchCluster
+metadata:
+  name: opensearch-cluster
+  namespace: opensearch
+spec:
+  general:
+    version: 1.3.0
+    httpPort: 9200
+    vendor: opensearch
+    serviceName: opensearch-cluster
+    pluginsList: ["repository-s3"," https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/releases/download/1.3.0.0/prometheus-exporter-1.3.0.0.zip"]
+
+  dashboards:
+    additionalConfig:
+      server.basePath: "/opensearch"
+      server.rewriteBasePath: "false"
+    version: 1.3.0
+    enable: true
+    replicas: 2
+    resources:
+      requests:
+         memory: "1Gi"
+         cpu: "500m"
+      limits:
+         memory: "1Gi"
+         cpu: "500m"
+  confMgmt:
+    smartScaler: true
+  nodePools:
+    - component: masters
+      replicas: 3
+      diskSize: "30Gi"
+      NodeSelector:
+      resources:
+         requests:
+            memory: "2Gi"
+            cpu: "500m"
+         limits:
+            memory: "2Gi"
+            cpu: "500m"
+      roles:
+        - "master"
+        - "data"
+      persistence:
+        pvc:
+          storageClass: managed-csi-premium
+          accessModes:
+            - ReadWriteOnce
+    - component: nodes
+      replicas: 3
+      diskSize: "128Gi"
+      NodeSelector:
+      resources:
+         requests:
+            memory: "2Gi"
+            cpu: "500m"
+         limits:
+            memory: "2Gi"
+            cpu: "500m"
+      roles:
+        - "data"
+      persistence:
+        pvc:
+          storageClass: managed-csi-premium
+          accessModes:
+            - ReadWriteOnce
+    - component: coordinators
+      replicas: 3
+      diskSize: "30Gi"
+      NodeSelector:
+      resources:
+         requests:
+            memory: "2Gi"
+            cpu: "500m"
+         limits:
+            memory: "2Gi"
+            cpu: "500m"
+      roles:
+        - "ingest"
+      persistence:
+        pvc:
+          storageClass: managed-csi-premium
+          accessModes:
+            - ReadWriteOnce
